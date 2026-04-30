@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: fct_payment_transactions
+    description: Core fact table for payment transaction analytics
+
+    columns:
+      - name: txn_reference
+        description: Transaction reference identifier
+
+      - name: transaction_amount
+        description: Original transaction payment amount
+
+      - name: interchange_amount
+        description: Interchange processing cost
+
+      - name: interchange_rate
+        description: Interchange cost divided by transaction amount
+
+  - name: mart_payment_recommendations
+    description: Operational recommendation layer for payment optimization
