@@ -54,3 +54,17 @@ Example recommendations:
 - Investigate high interchange transaction segments
 - Optimize payment routing strategies
 - Analyze debit vs credit transaction mix
+
+## Example Operational Use Cases
+
+### Merchant Cost Optimization
+Identify transaction segments contributing disproportionately to interchange costs.
+
+### Authentication Performance
+Evaluate AVS/CVC verification coverage across transaction flows.
+
+### Payment Mix Analysis
+Analyze debit vs credit transaction composition and associated fee impacts.
+
+### Regional Payment Analysis
+Compare interchange behavior across issuer geographies.
