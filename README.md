@@ -44,3 +44,13 @@ Raw CSV → Staging Models → Intermediate Models → Payment Performance Marts
 - How does shopper interaction impact interchange rates?
 - Do AVS/CVC verification patterns correlate with transaction cost?
 - Which BIN ranges contribute disproportionately to payment fees?
+
+## Operational Recommendation Layer
+
+The platform includes a recommendation mart that surfaces payment optimization opportunities based on interchange behavior, authentication quality, and transaction characteristics.
+
+Example recommendations:
+- Improve AVS/CVC verification coverage
+- Investigate high interchange transaction segments
+- Optimize payment routing strategies
+- Analyze debit vs credit transaction mix
