@@ -68,3 +68,13 @@ Analyze debit vs credit transaction composition and associated fee impacts.
 
 ### Regional Payment Analysis
 Compare interchange behavior across issuer geographies.
+
+## Future Improvements
+
+- dbt execution orchestration via GitHub Actions
+- DuckDB local warehouse integration
+- Tableau / BI dashboards
+- Automated data quality testing
+- Incremental model materializations
+- LLM-powered payment optimization recommendation agent
+- Semantic metrics layer implementation
