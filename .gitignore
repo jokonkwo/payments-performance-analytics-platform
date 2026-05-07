@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# dbt / project specific
+data/processed/
+data/landing/
+dbt_packages/
+*.pyc
