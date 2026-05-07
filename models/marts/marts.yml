@@ -2,20 +2,40 @@ version: 2
 
 models:
   - name: fct_payment_transactions
-    description: Core fact table for payment transaction analytics
-
+    description: "Core payment transactions fact table with all enrichment flags"
     columns:
-      - name: txn_reference
-        description: Transaction reference identifier
-
-      - name: transaction_amount
-        description: Original transaction payment amount
-
-      - name: interchange_amount
-        description: Interchange processing cost
-
-      - name: interchange_rate
-        description: Interchange cost divided by transaction amount
-
-  - name: mart_payment_recommendations
-    description: Operational recommendation layer for payment optimization
+      - name: payment_intent_id
+        tests:
+          - unique
+          - not_null
+  - name: mart_auth_rate_performance
+    description: "Authorization rate performance aggregated by merchant, channel, and month"
+    columns:
+      - name: auth_rate
+        tests:
+          - not_null
+  - name: mart_interchange_performance
+    description: "Interchange cost performance aggregated by merchant, funding type, and program"
+    columns:
+      - name: avg_interchange_rate_bps
+        tests:
+          - not_null
+  - name: mart_fraud_and_disputes
+    description: "Fraud and dispute analytics aggregated by merchant and risk level"
+  - name: mart_payment_optimization_recommendations
+    description: "Actionable payment optimization recommendations per merchant"
+    columns:
+      - name: priority
+        tests:
+          - accepted_values:
+              values: ['high', 'medium', 'low']
+      - name: recommendation_type
+        tests:
+          - accepted_values:
+              values: ['improve_cvc_coverage', 'adopt_network_tokens', 'optimize_3ds', 'reduce_hard_declines', 'investigate_interchange_tier']
+  - name: dim_merchant
+    description: "Merchant dimension table"
+  - name: dim_card_bin
+    description: "Card BIN dimension table"
+  - name: dim_date
+    description: "Date dimension table for 2024"

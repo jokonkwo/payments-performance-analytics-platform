@@ -1,0 +1,7 @@
+payments_performance:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/processed/payments.duckdb
+      threads: 4

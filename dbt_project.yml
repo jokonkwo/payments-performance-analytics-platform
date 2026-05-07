@@ -1,0 +1,21 @@
+name: payments_performance
+version: '1.0.0'
+config-version: 2
+profile: payments_performance
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+analysis-paths: ["analysis"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+models:
+  payments_performance:
+    raw:
+      +materialized: view
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table

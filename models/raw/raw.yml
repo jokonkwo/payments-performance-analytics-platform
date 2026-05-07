@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: stripe_charges
+        description: "Raw Stripe charge events ingested from NDJSON landing files"
+        columns:
+          - name: raw_payload
+            description: "Full JSON record as string"
+          - name: _ingested_at
+            description: "Timestamp when record was ingested"
+          - name: _source_file
+            description: "Source filename"

@@ -1,0 +1,54 @@
+version: 2
+
+metrics:
+  - name: gross_payment_volume
+    label: "Gross Payment Volume"
+    description: "Total payment volume in USD"
+    type: simple
+    type_params:
+      measure:
+        name: amount_usd_cents
+        agg: sum
+
+  - name: authorization_rate
+    label: "Authorization Rate"
+    description: "Ratio of authorized transactions to total attempts"
+    type: ratio
+    type_params:
+      numerator:
+        name: authorized_count
+        agg: sum
+      denominator:
+        name: transaction_attempts
+        agg: sum
+
+  - name: interchange_rate_bps
+    label: "Interchange Rate (bps)"
+    description: "Effective interchange rate in basis points"
+    type: derived
+    type_params:
+      expr: "SUM(interchange_amount_cents) / NULLIF(SUM(amount_usd_cents), 0) * 10000"
+      metrics:
+        - interchange_amount_cents
+        - amount_usd_cents
+
+  - name: dispute_rate
+    label: "Dispute Rate"
+    description: "Ratio of disputed to authorized transactions"
+    type: ratio
+    type_params:
+      numerator:
+        name: disputed_count
+        agg: sum
+      denominator:
+        name: authorized_count
+        agg: sum
+
+  - name: avg_transaction_value
+    label: "Average Transaction Value (USD)"
+    description: "Average transaction value in USD"
+    type: simple
+    type_params:
+      measure:
+        name: amount_usd_cents
+        agg: average
