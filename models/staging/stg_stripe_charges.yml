@@ -1,0 +1,118 @@
+version: 2
+
+models:
+  - name: stg_stripe_charges
+    description: "Cleaned, typed, and deduplicated Stripe charge events. One row per payment intent."
+    columns:
+      - name: payment_intent_id
+        description: "Unique payment intent identifier (pi_...)"
+        tests:
+          - unique
+          - not_null
+      - name: charge_id
+        description: "Charge identifier (ch_...), null for declined transactions"
+      - name: merchant_account_id
+        description: "Stripe merchant account identifier"
+        tests:
+          - not_null
+      - name: merchant_name
+        description: "Human-readable merchant name"
+      - name: customer_id
+        description: "Customer identifier, null for guest checkouts"
+      - name: attempt_number
+        description: "Payment attempt number (1-3)"
+      - name: created_at
+        description: "Timestamp of payment creation in UTC"
+      - name: card_brand
+        description: "Card brand: visa, mastercard, amex, discover"
+      - name: card_funding
+        description: "Card funding type"
+        tests:
+          - accepted_values:
+              values: ['credit', 'debit', 'prepaid', 'commercial']
+      - name: card_country
+        description: "ISO 2-letter country code of card issuer"
+      - name: card_last4
+        description: "Last 4 digits of card number"
+      - name: card_exp_month
+        description: "Card expiration month (1-12)"
+      - name: card_exp_year
+        description: "Card expiration year"
+      - name: card_fingerprint
+        description: "Unique card fingerprint (16-char alphanumeric)"
+      - name: card_network
+        description: "Card network (visa, mastercard, amex, discover)"
+      - name: card_wallet
+        description: "Digital wallet used: apple_pay, google_pay, link, or null"
+      - name: card_bin
+        description: "8-digit card BIN (Bank Identification Number)"
+      - name: network_token_used
+        description: "Whether a network token was used for this transaction"
+      - name: checks_cvc_check
+        description: "CVC verification result: pass, fail, unavailable, unchecked, or null"
+      - name: checks_address_postal_code_check
+        description: "Postal code verification result: pass, fail, unavailable, unchecked, or null"
+      - name: checks_address_line1_check
+        description: "Address line 1 verification result: pass, fail, unavailable, unchecked, or null"
+      - name: three_d_secure_result
+        description: "3DS authentication result: authenticated, attempt_acknowledged, exempted, failed, not_supported, or null"
+      - name: three_d_secure_version
+        description: "3DS protocol version: 1.0.2, 2.1.0, 2.2.0, or null"
+      - name: outcome_network_status
+        description: "Network authorization status"
+      - name: outcome_type
+        description: "Authorization outcome type"
+        tests:
+          - accepted_values:
+              values: ['authorized', 'manual_review', 'issuer_declined', 'blocked', 'invalid']
+      - name: outcome_risk_level
+        description: "Stripe risk assessment level: normal, elevated, highest"
+      - name: outcome_risk_score
+        description: "Stripe risk score (0-99)"
+      - name: failure_code
+        description: "Decline failure code, null on successful authorizations"
+      - name: outcome_network_decline_code
+        description: "ISO network decline code, null on success"
+      - name: amount_cents
+        description: "Transaction amount in minor currency units (cents)"
+      - name: amount_usd_cents
+        description: "Transaction amount converted to USD cents"
+      - name: currency
+        description: "ISO 3-letter currency code: usd, eur, gbp, cad, mxn"
+      - name: billing_address_country
+        description: "ISO 2-letter billing country code"
+      - name: shopper_interaction
+        description: "Channel: ecommerce, recurring, moto, pos"
+        tests:
+          - accepted_values:
+              values: ['ecommerce', 'recurring', 'moto', 'pos']
+      - name: is_guest_checkout
+        description: "Whether the transaction was a guest checkout (no customer account)"
+      - name: radar_risk_score
+        description: "Stripe Radar ML risk score (0-99)"
+      - name: radar_risk_level
+        description: "Stripe Radar risk level: normal, elevated, highest"
+      - name: radar_outcome
+        description: "Stripe Radar outcome: allow, review, block"
+      - name: interchange_amount_cents
+        description: "Interchange fee in cents, null for declined transactions"
+      - name: interchange_rate_bps
+        description: "Interchange rate in basis points, null for declined transactions"
+      - name: interchange_program
+        description: "Interchange qualification program, null for declined transactions"
+      - name: network_fee_cents
+        description: "Card network fee in cents, null for declined transactions"
+      - name: stripe_fee_cents
+        description: "Stripe processing fee in cents, null for declined transactions"
+      - name: settlement_date
+        description: "Settlement date (T+1 or T+2), null for declined transactions"
+      - name: is_authorized
+        description: "Boolean: true if outcome_type = authorized"
+      - name: is_disputed
+        description: "Boolean: true if transaction was disputed"
+      - name: is_guest
+        description: "Boolean: true if guest checkout"
+      - name: is_network_token
+        description: "Boolean: true if network token was used"
+      - name: is_3ds_authenticated
+        description: "Boolean: true if 3DS result = authenticated"
