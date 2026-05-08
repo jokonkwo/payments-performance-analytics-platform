@@ -5,8 +5,8 @@
 }}
 
 WITH merchant_names AS (
-    SELECT DISTINCT merchant_account_id, merchant_name
-    FROM {{ ref('fct_payment_transactions') }}
+    SELECT merchant_account_id, merchant_name
+    FROM {{ ref('dim_merchant') }}
 ),
 
 -- Pre-aggregate everything needed
