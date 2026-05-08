@@ -14,7 +14,9 @@ This platform models raw transaction events into a queryable, tested, and docume
 
 ## 🔗 Interactive Demo
 
-**Coming soon — MotherDuck workspace**
+📖 **Data Docs** (dbt lineage + model documentation): [https://jokonkwo.github.io/payments-performance-analytics-platform/](https://jokonkwo.github.io/payments-performance-analytics-platform/)
+
+📊 **Live Data** (MotherDuck — coming soon): [Coming soon]
 
 ---
 
