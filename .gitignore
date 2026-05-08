@@ -221,6 +221,7 @@ __marimo__/
 data/processed/
 data/landing/
 dbt_packages/
+profiles.yml
 *.pyc
 
 # System files
