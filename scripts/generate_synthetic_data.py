@@ -305,6 +305,14 @@ def gen_merchant(idx, rng):
             "commercial": ["STD_IRF"],
         }
 
+    # Fixed BIN pool — generated once per merchant so BINs repeat across transactions
+    _pool_n_range = {"enterprise": (1500, 2001), "large": (1000, 1501),
+                     "mid": (700, 1001), "small": (500, 701)}
+    pool_n           = int(rng.integers(*_pool_n_range[size_tier]))
+    pool_brand_arr   = rng.choice(CARD_BRANDS,   size=pool_n, p=_norm(bw))
+    pool_funding_arr = rng.choice(CARD_FUNDINGS, size=pool_n, p=_norm(fw))
+    pool_bin_list    = gen_bins(pool_brand_arr.tolist(), rng)
+
     return {
         "id":           f"MERCH_{idx+1:04d}",
         "account_id":   f"acct_{vertical[:4]}{idx+1:06d}",
@@ -331,6 +339,11 @@ def gen_merchant(idx, rng):
         "link_rate":        link_rate,
         "dispute_rate":     dispute_rate,
         "ic_programs":      ic_programs,
+        "bin_pool": {
+            "bins":     pool_bin_list,
+            "brands":   pool_brand_arr.tolist(),
+            "fundings": pool_funding_arr.tolist(),
+        },
     }
 
 
@@ -415,9 +428,15 @@ def generate_merchant(merchant, rng, f):
 
     n = total_n
 
-    # Bulk attribute generation
-    fundings = rng.choice(CARD_FUNDINGS, size=n, p=m["card_funding_weights"])
-    brands   = rng.choice(CARD_BRANDS,   size=n, p=m["card_brand_weights"])
+    # Bulk attribute generation — brand/funding/bin sampled from fixed pool
+    _pool       = m["bin_pool"]
+    _pool_bins  = np.array(_pool["bins"],     dtype=object)
+    _pool_brnds = np.array(_pool["brands"],   dtype=object)
+    _pool_funds = np.array(_pool["fundings"], dtype=object)
+    _pool_idx   = rng.integers(0, len(_pool_bins), size=n)
+    card_bins   = _pool_bins[_pool_idx]
+    brands      = _pool_brnds[_pool_idx]
+    fundings    = _pool_funds[_pool_idx]
     ctries   = rng.choice(m["card_countries"], size=n, p=m["card_country_weights"])
     currs    = rng.choice(m["currencies"],      size=n, p=m["currency_weights"])
     amounts  = rng.integers(m["aov_min"], m["aov_max"] + 1, size=n)
@@ -442,7 +461,6 @@ def generate_merchant(merchant, rng, f):
 
     pi_ids       = gen_ids("pi_",  24, n, rng)
     fingerprints = gen_fingerprints(n, rng)
-    card_bins    = gen_bins(brands, rng)
     ch_ids       = gen_ids("ch_",  24, n, rng)
     txn_ids      = gen_ids("txn_", 24, n, rng)
     cus_ids      = gen_ids("cus_", 16, n, rng)

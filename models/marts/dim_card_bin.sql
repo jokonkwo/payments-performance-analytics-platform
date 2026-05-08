@@ -5,13 +5,14 @@
 }}
 
 WITH base AS (
-    SELECT DISTINCT
+    SELECT
         card_bin,
-        card_brand,
-        card_funding,
-        card_country
+        ANY_VALUE(card_brand)   AS card_brand,
+        ANY_VALUE(card_funding) AS card_funding,
+        ANY_VALUE(card_country) AS card_country
     FROM {{ ref('stg_stripe_charges') }}
     WHERE card_bin IS NOT NULL
+    GROUP BY card_bin
 ),
 
 with_issuer AS (
