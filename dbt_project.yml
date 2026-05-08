@@ -14,7 +14,7 @@ models:
     raw:
       +materialized: view
     staging:
-      +materialized: view
+      +materialized: table
     intermediate:
       +materialized: view
     marts:
