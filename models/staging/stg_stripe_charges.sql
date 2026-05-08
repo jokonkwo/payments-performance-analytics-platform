@@ -88,7 +88,7 @@ typed AS (
         interchange_rate_bps,
         interchange_program,
         network_fee_cents,
-        stripe_fee_cents,
+        processor_fee_cents,
 
         -- Settlement
         balance_transaction_id,
@@ -172,7 +172,7 @@ final AS (
         interchange_rate_bps,
         interchange_program,
         network_fee_cents,
-        stripe_fee_cents,
+        processor_fee_cents,
         balance_transaction_id,
         settlement_date,
         _ingested_at,

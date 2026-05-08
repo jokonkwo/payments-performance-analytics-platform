@@ -102,8 +102,8 @@ models:
         description: "Interchange qualification program, null for declined transactions"
       - name: network_fee_cents
         description: "Card network fee in cents, null for declined transactions"
-      - name: stripe_fee_cents
-        description: "Stripe processing fee in cents, null for declined transactions"
+      - name: processor_fee_cents
+        description: "Processor fee in cents, null for declined transactions"
       - name: settlement_date
         description: "Settlement date (T+1 or T+2), null for declined transactions"
       - name: is_authorized
