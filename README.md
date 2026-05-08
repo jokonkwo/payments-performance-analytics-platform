@@ -1,250 +1,224 @@
 # Payments Performance Analytics Platform
 
-**An end-to-end analytics engineering project transforming raw payment transaction events into merchant-facing optimization intelligence.**
+**An end-to-end analytics engineering project transforming raw 
+payment transaction events into merchant-facing optimization 
+intelligence.**
+
+---
+
+## Live Demo
+
+| | |
+|---|---|
+| 📊 **Dashboard** | [Payments Performance Analytics](https://app.motherduck.com/dives/b88b73e6-c16e-4459-bd20-ed72e6b4ae3c) *(free MotherDuck account required)* |
+| 📖 **Data Docs** | [dbt lineage + model documentation](https://jokonkwo.github.io/payments-performance-analytics-platform/) |
+| 🗄️ **Query the data** | See [MotherDuck access](#motherduck-access) below |
+
+![Dashboard](docs/screenshots/dashboard.png)
 
 ---
 
 ## The Business Problem
 
-Payment processors and merchants generate millions of authorization attempts every day. Without a structured data layer sitting beneath that volume, the signals buried in the noise — why auth rates leak, which interchange tiers are avoidable, where fraud risk concentrates — stay invisible. Business teams are left making decisions from aggregate dashboards that can't tell them *which* merchants, *which* channels, or *which* card segments to act on.
+Payment processors and merchants generate millions of 
+authorization attempts every day. Without a structured data 
+layer, the signals buried in that volume — why auth rates 
+leak, which interchange tiers are avoidable, where fraud 
+risk concentrates — stay invisible. Business teams are left 
+making decisions from aggregate dashboards that cannot tell 
+them which merchants, which channels, or which card segments 
+to act on.
 
-This platform models raw transaction events into a queryable, tested, and documented analytics layer that turns payment data into specific, quantified merchant recommendations — the kind a payments-focused analytics engineer or account executive would walk into a merchant conversation with.
-
----
-
-## 🔗 Interactive Demo
-
-📖 **Data Docs** (dbt lineage + model documentation): [https://jokonkwo.github.io/payments-performance-analytics-platform/](https://jokonkwo.github.io/payments-performance-analytics-platform/)
-
-## 📊 Live Data — MotherDuck
-
-The gold layer is publicly queryable via MotherDuck. 
-Requires a free account at motherduck.com
-
-**Attach the database:**
-```sql
-ATTACH 'md:_share/payments_performance_jokonkwo/5ffa01f6-e26b-4e86-b999-79c010cdc71d';
-```
-
-**Example queries to get started:**
-
-```sql
--- Which merchants have the largest auth rate gap vs benchmark?
-SELECT 
-    merchant_name,
-    shopper_interaction,
-    ROUND(auth_rate * 100, 1) as auth_rate_pct,
-    ROUND(auth_rate_vs_benchmark * 100, 1) as gap_vs_benchmark_pct,
-    ROUND(potential_revenue_at_risk_cents / 100.0, 2) as revenue_at_risk_usd
-FROM payments_performance.mart_auth_rate_performance
-ORDER BY auth_rate_vs_benchmark ASC
-LIMIT 10;
-
--- Interchange cost breakdown by funding source
-SELECT
-    card_funding,
-    shopper_interaction,
-    COUNT(*) as transactions,
-    ROUND(AVG(interchange_rate_bps), 1) as avg_rate_bps,
-    ROUND(SUM(interchange_amount_cents) / 100.0, 2) as total_interchange_usd
-FROM payments_performance.mart_interchange_performance
-GROUP BY 1, 2
-ORDER BY avg_rate_bps DESC;
-
--- Top optimization recommendations by impact
-SELECT
-    merchant_name,
-    recommendation_type,
-    priority,
-    affected_transaction_count,
-    ROUND(estimated_annual_impact_cents / 100.0, 2) as annual_impact_usd,
-    recommendation_detail
-FROM payments_performance.mart_payment_optimization_recommendations
-ORDER BY estimated_annual_impact_cents DESC
-LIMIT 20;
-```
+This platform models raw transaction events into a queryable, 
+tested, and documented analytics layer that turns payment data 
+into specific, quantified merchant recommendations.
 
 ---
 
 ## What This Project Demonstrates
 
-This is built for a technical reviewer who wants to assess analytics engineering depth. Here is what the project explicitly covers:
-
-- **End-to-end pipeline** from raw compressed NDJSON events to governed, documented marts
-- **Medallion architecture** — raw → staging → intermediate → marts, with clear separation of concerns at each layer
-- **Dimensional modeling** — fact and dimension tables designed around authorization-grain transaction data
-- **dbt best practices** — column-level documentation, schema tests, generic and singular tests, and metric definitions in YAML
-- **Domain logic in SQL** — authorization quality scoring, decline classification (hard vs. soft vs. fraud), interchange tier assignment, and benchmark gap calculations embedded directly in transformation models
-- **Recommendation layer** — a mart that produces prioritized, quantified optimization opportunities per merchant segment, not just descriptive aggregations
-- **Designed for scale** — 10M+ transactions across 50+ dynamically generated merchants, with the generation logic parameterized and reproducible
+- **End-to-end pipeline** — raw compressed NDJSON → DuckDB 
+  raw table → dbt staging → intermediate → marts
+- **Medallion architecture** — clear separation of concerns 
+  at each layer with appropriate materialization strategies
+- **Dimensional modeling** — star schema with fact and 
+  dimension tables designed around authorization-grain data
+- **dbt best practices** — column-level docs, schema tests, 
+  generic and singular tests across all layers
+- **Payments domain logic** — auth quality scoring, decline 
+  classification, interchange tier assignment, and benchmark 
+  gap calculations embedded in SQL
+- **Recommendation layer** — prioritized, quantified 
+  optimization opportunities per merchant, not just 
+  descriptive aggregations
+- **Scale** — 8.25M transactions across 50 dynamically 
+  generated merchants across 15 verticals
 
 ---
 
 ## Business Questions This Platform Answers
 
-These are the questions a payments-adjacent business team would bring to the data layer:
+1. **Auth rate leakage** — Which merchant segments have 
+   authorization rates below vertical benchmarks, and what 
+   is the estimated revenue impact of closing that gap?
 
-1. **Authorization rate leakage** — Which merchant segments have authorization rates below vertical benchmarks, and what is the estimated revenue impact of closing that gap?
+2. **Interchange cost concentration** — Where are interchange 
+   costs highest, and which combinations of funding source, 
+   channel, and card type are driving above-benchmark 
+   effective rates?
 
-2. **Interchange cost concentration** — Where are interchange costs highest, and which combinations of funding source, channel, and card type are driving above-benchmark effective rates?
+3. **Authentication data gaps** — Which transaction segments 
+   lack sufficient CVC, AVS, or 3DS coverage, and what is 
+   the risk exposure created by those gaps?
 
-3. **Authentication data gaps** — Which transaction segments lack sufficient CVC, AVS, or 3DS coverage, and what is the risk exposure created by those gaps?
+4. **Decline classification** — How are declines distributed 
+   across hard, soft, and fraud categories? Which soft 
+   declines are retryable?
 
-4. **Decline classification** — How are declines distributed across hard, soft, and fraud categories? Which soft declines are retryable, and what does the retry opportunity look like at scale?
-
-5. **Token and 3DS adoption** — Where are network token and 3DS adoption gaps creating authorization rate drag and cost optimization opportunities that the merchant has not yet captured?
+5. **Token and 3DS adoption** — Where are network token and 
+   3DS adoption gaps creating authorization rate drag and 
+   cost optimization opportunities?
 
 ---
 
-## Data Model Overview
+## The Data — From Raw to Insight
 
-| Attribute | Detail |
-|---|---|
-| Merchant portfolio | 50 dynamically generated merchants across 15 payment verticals and 4 size tiers |
-| Volume | ~10M authorization attempts across 12 months of 2024 |
-| Grain | One row per authorization attempt |
-| Schema | Grounded in real payment processor API field structures and published network interchange programs |
+### Raw Input — Bronze Layer
 
-Verticals covered include retail, QSR, subscription, healthcare, travel, marketplace, grocery, gaming, education, beauty, automotive, real estate, nonprofit, B2B SaaS, and logistics. Merchants are generated with realistic attributes — channel mix, average order value, auth rate, card funding mix, geographic distribution, and dispute rate — all derived from vertical and size tier, not hardcoded.
+One row per authorization attempt, as emitted by a payment 
+processor API. Messy field names, mixed types, nested checks, 
+null patterns. This is what the pipeline starts with:
+
+| id | card_brand | card_funding | shopper_interaction | amount | currency | checks_cvc_check | outcome_type | interchange_rate_bps | radar_risk_score |
+|:---|:---|:---|:---|---:|:---|:---|:---|---:|---:|
+| pi_vCoj6Yk... | visa | debit | pos | 5846 | usd | pass | authorized | 89 | 81 |
+| pi_eW7DF8m... | visa | debit | pos | 6312 | usd | pass | authorized | 72 | 3 |
+| pi_vWD5Kol... | discover | prepaid | pos | 5964 | usd | unchecked | authorized | 188 | 87 |
+| pi_sDLOtUv... | amex | prepaid | pos | 7658 | usd | pass | authorized | 274 | 0 |
+| pi_epSylOO... | visa | credit | pos | 4062 | usd | pass | authorized | 162 | 9 |
+
+`amount` is in minor units (cents). `checks_cvc_check` uses 
+Stripe's real API values. `interchange_rate_bps` is null on 
+declines. This is the raw schema — no business logic applied.
+
+### Gold Output — Optimization Recommendations
+
+After raw → staging → intermediate → marts, the platform 
+produces merchant-specific, quantified recommendations:
+
+| merchant_name | recommendation_type | priority | affected_txns | annual_impact_usd | detail |
+|:---|:---|:---|---:|---:|:---|
+| Merchant_0047_Automotive | adopt_network_tokens | HIGH | 743,078 | $196.4M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0046_Realestate | improve_cvc_coverage | HIGH | 85,888 | $148.8M | High rate of transactions missing CVC data |
+| Merchant_0008_Marketplace | adopt_network_tokens | HIGH | 721,936 | $59.6M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0046_Realestate | adopt_network_tokens | HIGH | 59,357 | $41.1M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0020_Automotive | adopt_network_tokens | HIGH | 165,986 | $30.7M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0047_Automotive | investigate_interchange_tier | MEDIUM | 178,403 | $29.5M | Significant volume qualifying at premium interchange tier |
+
+The same raw transaction data that came in as JSON blobs 
+comes out as specific, dollar-quantified actions a payments 
+expert can walk into a merchant conversation with.
 
 ---
 
 ## Architecture
-
 ```
 Raw NDJSON (S3 / cloud storage simulation)
-         │
-         ▼
+│
+▼
 DuckDB raw table  ──  JSON unnesting, no transformation
-         │
-         ▼
-Staging  ──  Type casting, field renaming, deduplication, null handling
-         │
-         ▼
-Intermediate  ──  Payments domain logic, enrichment, classification
-         │
-         ▼
-Marts  ──  Dimensional model, aggregations, benchmark comparisons
-         │
-         ▼
-Optimization recommendations  ──  Prioritized, quantified merchant actions
+│
+▼
+Staging  ──  Type casting, field renaming, deduplication
+│
+▼
+Intermediate  ──  Payments domain logic and enrichment
+│
+▼
+Marts  ──  Dimensional model, aggregations, benchmarks
+│
+▼
+Optimization recommendations  ──  Quantified merchant actions
 ```
 
----
-
-## Layer Documentation
-
-### `raw/`
-
-The raw layer reads compressed NDJSON files from local storage and loads them into a DuckDB table without any transformation. The schema mirrors what a payment processor API would emit — one record per authorization attempt, with nested fields for card checks, 3DS outcome, radar risk scoring, and interchange metadata. Nothing is renamed or interpreted here. The raw layer exists so the rest of the pipeline has a stable, auditable source to build from.
-
-### `staging/`
-
-Staging is where raw events become typed, trusted records. Field names are standardized, timestamps are cast to proper types, boolean flags are normalized, and null patterns are made consistent. A deduplication step removes any duplicate payment intent IDs before data flows downstream. This layer is what all intermediate and mart models build on — it acts as the contract between ingestion and analytics.
-
-### `intermediate/`
-
-The intermediate layer is where payments domain logic lives. Raw authorization outcomes are classified into hard declines, soft declines, and fraud blocks. CVC and AVS checks are scored for quality. 3DS outcomes are interpreted alongside network token flags to produce enriched authorization quality signals per transaction. Card BIN metadata, merchant attributes, and channel context are joined here, resulting in a single enriched transaction spine that the mart layer can aggregate from cleanly.
-
-### `marts/`
-
-The mart layer is the analytical output. It includes:
-
-- **`fct_payment_transactions`** — the core fact table at authorization-attempt grain, with all enriched fields from intermediate
-- **`dim_merchant`**, **`dim_card_bin`**, **`dim_date`** — conformed dimensions used consistently across all aggregation models
-- **`mart_auth_rate_performance`** — authorization rate by merchant, channel, and card segment, compared to vertical benchmarks with estimated revenue impact of gap closure
-- **`mart_interchange_performance`** — effective interchange rate by funding type, card brand, and channel; flags above-benchmark segments
-- **`mart_fraud_and_disputes`** — dispute rate, fraud signal distribution, and decline breakdown by risk category and merchant segment
-- **`mart_payment_optimization_recommendations`** — a prioritized, merchant-level recommendation table with quantified impact estimates covering auth rate, interchange cost, token adoption, and authentication coverage
-
-### `metrics.yml`
-
-Governed metric definitions using the dbt Semantic Layer format. Key business metrics — authorization rate, gross payment volume, effective interchange rate, dispute rate, CVC coverage — are defined once with canonical logic and reusable across any downstream consumption layer, including BI tools and notebooks.
+See [models/README.md](models/README.md) for full data model 
+documentation and [docs/README.md](docs/README.md) for metric 
+definitions and production architecture notes.
 
 ---
 
-## Key Metric Definitions
+## Data Overview
 
-**Gross Payment Volume (GPV)** — The total USD value of authorized and captured transactions across a time period. The top-line volume metric for any payment business.
+| Attribute | Detail |
+|---|---|
+| Merchants | 50 dynamically generated across 15 verticals |
+| Size tiers | Enterprise, large, mid, small |
+| Volume | 8.25M authorization attempts |
+| Period | 2024-01-01 to 2024-12-31 |
+| Grain | One row per authorization attempt |
+| Schema | Grounded in real payment processor API field structures |
 
-**Authorization Rate** — The share of attempted transactions that result in a network approval. Calculated as approved authorizations divided by total attempts. Even a 1–2 percentage point gap from benchmark can represent significant revenue leakage at scale.
+Verticals: retail, QSR, subscription, healthcare, travel, 
+marketplace, grocery, gaming, education, beauty, automotive, 
+real estate, nonprofit, B2B SaaS, logistics.
 
-**Effective Interchange Rate (bps)** — The actual blended interchange cost as a basis point rate, calculated across all authorized transactions. Because interchange varies by card type, funding source, channel, and program tier, the effective rate tells you more than any single posted rate.
+---
 
-**CVC Coverage Rate** — The proportion of transactions where a CVC check was submitted and returned a pass result. Low CVC coverage is a common driver of soft declines and elevated interchange in card-not-present channels.
+## MotherDuck Access
 
-**Network Token Coverage Rate** — The share of transactions processed using a network token rather than a raw PAN. Higher token coverage is associated with improved authorization rates and, in some programs, reduced interchange.
+Query the gold layer directly using DuckDB or MotherDuck 
+(free account required):
 
-**Dispute Rate** — Disputes initiated as a percentage of authorized transactions. Tracked by merchant segment, vertical, and risk category to separate structural risk from specific transaction patterns.
+```sql
+ATTACH 'md:_share/payments_performance_jokonkwo/5ffa01f6-e26b-4e86-b999-79c010cdc71d';
 
-**Cost Per Transaction** — Total processing cost (interchange + network fees) divided by transaction count. Useful for benchmarking across channels and card mix, and for quantifying the cost impact of mix shifts.
+-- Auth rate gaps by merchant and channel
+SELECT 
+    a.merchant_account_id,
+    m.merchant_name,
+    a.shopper_interaction,
+    ROUND(AVG(a.auth_rate) * 100, 1) as avg_auth_rate_pct,
+    ROUND(AVG(a.auth_rate_vs_benchmark) * 100, 1) as gap_vs_benchmark_pct,
+    ROUND(SUM(a.potential_revenue_at_risk_cents) / 100.0, 0) 
+        as revenue_at_risk_usd
+FROM payments_performance.mart_auth_rate_performance a
+JOIN payments_performance.dim_merchant m 
+    ON a.merchant_account_id = m.merchant_account_id
+GROUP BY 1, 2, 3
+ORDER BY gap_vs_benchmark_pct ASC
+LIMIT 15;
+```
+
+See [scripts/README.md](scripts/README.md) for the full list 
+of available tables.
 
 ---
 
 ## Running Locally
 
-### Prerequisites
+See [scripts/README.md](scripts/README.md) for full setup 
+instructions.
 
-Python 3.9+ and git. All other dependencies install via pip.
-
-### Steps
-
-**1. Clone the repository and install dependencies**
-
+**Quick start:**
 ```bash
-git clone <repo-url>
+git clone https://github.com/jokonkwo/payments-performance-analytics-platform.git
 cd payments-performance-analytics-platform
 pip install -r requirements.txt
-```
-
-**2. Generate synthetic transaction data**
-
-This creates ~10M transactions across 50 merchants and writes them to `data/landing/raw_charges.ndjson.gz`. The `--seed` flag makes output reproducible; `--num-merchants` controls portfolio size.
-
-```bash
 python scripts/generate_synthetic_data.py --num-merchants 50 --seed 42
-```
-
-**3. Load raw data into DuckDB**
-
-Reads the compressed NDJSON file and loads it into a local DuckDB database at `data/processed/payments.duckdb`.
-
-```bash
 python scripts/ingest_raw.py
-```
-
-**4. Install dbt dependencies**
-
-Downloads the dbt packages declared in `packages.yml` (DuckDB adapter and any utilities).
-
-```bash
 dbt deps --profiles-dir .
-```
-
-**5. Run all dbt models**
-
-Executes the full transformation pipeline — raw → staging → intermediate → marts — in dependency order. DuckDB runs in-process; no external database or credentials needed.
-
-```bash
 dbt run --profiles-dir .
-```
-
-**6. Run data quality tests**
-
-Executes the tests defined in schema YAML files: not-null, uniqueness, accepted-value, and referential integrity checks across all layers.
-
-```bash
 dbt test --profiles-dir .
-```
-
-**7. Run a specific model (optional)**
-
-```bash
-dbt run --select mart_auth_rate_performance --profiles-dir .
 ```
 
 ---
 
 ## Data Disclaimer
 
-Transaction data in this project is synthetically generated to mirror real payment processor event schemas. Field names, structures, and outcome codes are grounded in publicly documented payment processor APIs. Interchange rates are derived from published Visa and Mastercard interchange schedules, not proprietary fee data. Merchant profiles and transaction patterns are simulated; any resemblance to actual merchant data is coincidental. This project is intended for portfolio and educational purposes.
+Transaction data is synthetically generated to mirror real 
+payment processor event schemas. Field names and structures 
+are grounded in publicly documented payment processor APIs. 
+Interchange rates are derived from published Visa and 
+Mastercard interchange schedules, not proprietary fee data. 
+This project is intended for portfolio and educational 
+purposes.
