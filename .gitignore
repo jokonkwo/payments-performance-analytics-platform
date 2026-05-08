@@ -222,3 +222,8 @@ data/processed/
 data/landing/
 dbt_packages/
 *.pyc
+
+# System files
+.DS_Store
+**/.DS_Store
+.user.yml
