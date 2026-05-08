@@ -16,7 +16,53 @@ This platform models raw transaction events into a queryable, tested, and docume
 
 📖 **Data Docs** (dbt lineage + model documentation): [https://jokonkwo.github.io/payments-performance-analytics-platform/](https://jokonkwo.github.io/payments-performance-analytics-platform/)
 
-📊 **Live Data** (MotherDuck — coming soon): [Coming soon]
+## 📊 Live Data — MotherDuck
+
+The gold layer is publicly queryable via MotherDuck. 
+Requires a free account at motherduck.com
+
+**Attach the database:**
+```sql
+ATTACH 'md:_share/payments_performance_jokonkwo/5ffa01f6-e26b-4e86-b999-79c010cdc71d';
+```
+
+**Example queries to get started:**
+
+```sql
+-- Which merchants have the largest auth rate gap vs benchmark?
+SELECT 
+    merchant_name,
+    shopper_interaction,
+    ROUND(auth_rate * 100, 1) as auth_rate_pct,
+    ROUND(auth_rate_vs_benchmark * 100, 1) as gap_vs_benchmark_pct,
+    ROUND(potential_revenue_at_risk_cents / 100.0, 2) as revenue_at_risk_usd
+FROM payments_performance.mart_auth_rate_performance
+ORDER BY auth_rate_vs_benchmark ASC
+LIMIT 10;
+
+-- Interchange cost breakdown by funding source
+SELECT
+    card_funding,
+    shopper_interaction,
+    COUNT(*) as transactions,
+    ROUND(AVG(interchange_rate_bps), 1) as avg_rate_bps,
+    ROUND(SUM(interchange_amount_cents) / 100.0, 2) as total_interchange_usd
+FROM payments_performance.mart_interchange_performance
+GROUP BY 1, 2
+ORDER BY avg_rate_bps DESC;
+
+-- Top optimization recommendations by impact
+SELECT
+    merchant_name,
+    recommendation_type,
+    priority,
+    affected_transaction_count,
+    ROUND(estimated_annual_impact_cents / 100.0, 2) as annual_impact_usd,
+    recommendation_detail
+FROM payments_performance.mart_payment_optimization_recommendations
+ORDER BY estimated_annual_impact_cents DESC
+LIMIT 20;
+```
 
 ---
 
