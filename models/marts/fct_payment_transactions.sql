@@ -15,10 +15,10 @@ SELECT
     interchange_amount_cents,
     interchange_rate_bps,
     network_fee_cents,
-    stripe_fee_cents,
+    processor_fee_cents,
     COALESCE(interchange_amount_cents, 0)
         + COALESCE(network_fee_cents, 0)
-        + COALESCE(stripe_fee_cents, 0) AS total_fees_cents,
+        + COALESCE(processor_fee_cents, 0) AS total_fees_cents,
     auth_quality_segment,
     interchange_cost_tier,
     decline_category,

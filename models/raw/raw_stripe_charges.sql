@@ -85,7 +85,7 @@ SELECT
     CAST(json_extract(raw_payload, '$.interchange_rate_bps') AS INTEGER)      AS interchange_rate_bps,
     json_extract_string(raw_payload, '$.interchange_program')           AS interchange_program,
     CAST(json_extract(raw_payload, '$.network_fee_cents') AS INTEGER)   AS network_fee_cents,
-    CAST(json_extract(raw_payload, '$.stripe_fee_cents') AS INTEGER)    AS stripe_fee_cents,
+    CAST(json_extract(raw_payload, '$.stripe_fee_cents') AS INTEGER)    AS processor_fee_cents,
 
     -- Settlement
     json_extract_string(raw_payload, '$.balance_transaction_id')        AS balance_transaction_id,
