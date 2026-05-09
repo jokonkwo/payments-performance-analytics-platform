@@ -71,7 +71,9 @@ into specific, quantified merchant recommendations.
 
 ## Architecture
 
-![Architecture](docs/screenshots/architecture.png)
+<p align="left">
+  <img src="docs/screenshots/architecture.png" width="400" alt="Payments Performance Analytics Platform — Medallion Architecture"/>
+</p>
 
 See [models/README.md](models/README.md) for full data model 
 documentation and [docs/README.md](docs/README.md) for metric 
