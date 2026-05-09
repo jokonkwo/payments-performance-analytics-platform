@@ -70,24 +70,8 @@ into specific, quantified merchant recommendations.
 ---
 
 ## Architecture
-```
-Raw NDJSON (S3 / cloud storage simulation)
-│
-▼
-DuckDB raw table  ──  JSON unnesting, no transformation
-│
-▼
-Staging  ──  Type casting, field renaming, deduplication
-│
-▼
-Intermediate  ──  Payments domain logic and enrichment
-│
-▼
-Marts  ──  Dimensional model, aggregations, benchmarks
-│
-▼
-Optimization recommendations  ──  Quantified merchant actions
-```
+
+![Architecture](docs/screenshots/architecture.png)
 
 See [models/README.md](models/README.md) for full data model 
 documentation and [docs/README.md](docs/README.md) for metric 
