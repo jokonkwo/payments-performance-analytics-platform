@@ -6,18 +6,6 @@ intelligence.**
 
 ---
 
-## Live Demo
-
-| | |
-|---|---|
-| 📊 **Dashboard** | [Payments Performance Analytics](https://app.motherduck.com/dives/b88b73e6-c16e-4459-bd20-ed72e6b4ae3c) *(free MotherDuck account required)* |
-| 📖 **Data Docs** | [dbt lineage + model documentation](https://jokonkwo.github.io/payments-performance-analytics-platform/) |
-| 🗄️ **Query the data** | See [MotherDuck access](#motherduck-access) below |
-
-![Dashboard](docs/screenshots/dashboard.png)
-
----
-
 ## The Business Problem
 
 Payment processors and merchants generate millions of 
@@ -81,46 +69,6 @@ into specific, quantified merchant recommendations.
 
 ---
 
-## The Data — From Raw to Insight
-
-### Raw Input — Bronze Layer
-
-One row per authorization attempt, as emitted by a payment 
-processor API. Messy field names, mixed types, nested checks, 
-null patterns. This is what the pipeline starts with:
-
-| id | card_brand | card_funding | shopper_interaction | amount | currency | checks_cvc_check | outcome_type | interchange_rate_bps | radar_risk_score |
-|:---|:---|:---|:---|---:|:---|:---|:---|---:|---:|
-| pi_vCoj6Yk... | visa | debit | pos | 5846 | usd | pass | authorized | 89 | 81 |
-| pi_eW7DF8m... | visa | debit | pos | 6312 | usd | pass | authorized | 72 | 3 |
-| pi_vWD5Kol... | discover | prepaid | pos | 5964 | usd | unchecked | authorized | 188 | 87 |
-| pi_sDLOtUv... | amex | prepaid | pos | 7658 | usd | pass | authorized | 274 | 0 |
-| pi_epSylOO... | visa | credit | pos | 4062 | usd | pass | authorized | 162 | 9 |
-
-`amount` is in minor units (cents). `checks_cvc_check` uses 
-Stripe's real API values. `interchange_rate_bps` is null on 
-declines. This is the raw schema — no business logic applied.
-
-### Gold Output — Optimization Recommendations
-
-After raw → staging → intermediate → marts, the platform 
-produces merchant-specific, quantified recommendations:
-
-| merchant_name | recommendation_type | priority | affected_txns | annual_impact_usd | detail |
-|:---|:---|:---|---:|---:|:---|
-| Merchant_0047_Automotive | adopt_network_tokens | HIGH | 743,078 | $196.4M | High ecommerce/recurring volume not using network tokens |
-| Merchant_0046_Realestate | improve_cvc_coverage | HIGH | 85,888 | $148.8M | High rate of transactions missing CVC data |
-| Merchant_0008_Marketplace | adopt_network_tokens | HIGH | 721,936 | $59.6M | High ecommerce/recurring volume not using network tokens |
-| Merchant_0046_Realestate | adopt_network_tokens | HIGH | 59,357 | $41.1M | High ecommerce/recurring volume not using network tokens |
-| Merchant_0020_Automotive | adopt_network_tokens | HIGH | 165,986 | $30.7M | High ecommerce/recurring volume not using network tokens |
-| Merchant_0047_Automotive | investigate_interchange_tier | MEDIUM | 178,403 | $29.5M | Significant volume qualifying at premium interchange tier |
-
-The same raw transaction data that came in as JSON blobs 
-comes out as specific, dollar-quantified actions a payments 
-expert can walk into a merchant conversation with.
-
----
-
 ## Architecture
 ```
 Raw NDJSON (S3 / cloud storage simulation)
@@ -161,6 +109,58 @@ definitions and production architecture notes.
 Verticals: retail, QSR, subscription, healthcare, travel, 
 marketplace, grocery, gaming, education, beauty, automotive, 
 real estate, nonprofit, B2B SaaS, logistics.
+
+---
+
+## The Data — From Raw to Insight
+
+### Raw Input — Bronze Layer
+
+One row per authorization attempt, as emitted by a payment 
+processor API. Messy field names, mixed types, nested checks, 
+null patterns. This is what the pipeline starts with:
+
+| id | card_brand | card_funding | shopper_interaction | amount | currency | checks_cvc_check | outcome_type | interchange_rate_bps | radar_risk_score |
+|:---|:---|:---|:---|---:|:---|:---|:---|---:|---:|
+| pi_vCoj6Yk... | visa | debit | pos | 5846 | usd | pass | authorized | 89 | 81 |
+| pi_eW7DF8m... | visa | debit | pos | 6312 | usd | pass | authorized | 72 | 3 |
+| pi_vWD5Kol... | discover | prepaid | pos | 5964 | usd | unchecked | authorized | 188 | 87 |
+| pi_sDLOtUv... | amex | prepaid | pos | 7658 | usd | pass | authorized | 274 | 0 |
+| pi_epSylOO... | visa | credit | pos | 4062 | usd | pass | authorized | 162 | 9 |
+
+`amount` is in minor units (cents). `checks_cvc_check` uses 
+Stripe's real API values. `interchange_rate_bps` is null on 
+declines. This is the raw schema — no business logic applied.
+
+### Gold Output — Optimization Recommendations
+
+After raw → staging → intermediate → marts, the platform 
+produces merchant-specific, quantified recommendations:
+
+| merchant_name | recommendation_type | priority | affected_txns | annual_impact_usd | detail |
+|:---|:---|:---|---:|---:|:---|
+| Merchant_0047_Automotive | adopt_network_tokens | HIGH | 743,078 | $196.4M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0046_Realestate | improve_cvc_coverage | HIGH | 85,888 | $148.8M | High rate of transactions missing CVC data |
+| Merchant_0008_Marketplace | adopt_network_tokens | HIGH | 721,936 | $59.6M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0046_Realestate | adopt_network_tokens | HIGH | 59,357 | $41.1M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0020_Automotive | adopt_network_tokens | HIGH | 165,986 | $30.7M | High ecommerce/recurring volume not using network tokens |
+| Merchant_0047_Automotive | investigate_interchange_tier | MEDIUM | 178,403 | $29.5M | Significant volume qualifying at premium interchange tier |
+
+The same raw transaction data that came in as JSON blobs 
+comes out as specific, dollar-quantified actions a payments 
+expert can walk into a merchant conversation with.
+
+---
+
+## Live Demo
+
+| | |
+|---|---|
+| 📊 **Dashboard** | [Payments Performance Analytics](https://app.motherduck.com/dives/b88b73e6-c16e-4459-bd20-ed72e6b4ae3c) *(free MotherDuck account required)* |
+| 📖 **Data Docs** | [dbt lineage + model documentation](https://jokonkwo.github.io/payments-performance-analytics-platform/) |
+| 🗄️ **Query the data** | See [MotherDuck access](#motherduck-access) below |
+
+![Dashboard](docs/screenshots/dashboard.png)
 
 ---
 
