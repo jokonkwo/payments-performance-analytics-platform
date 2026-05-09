@@ -118,13 +118,7 @@ real estate, nonprofit, B2B SaaS, logistics.
 
 Each record arrives as a single compressed JSON blob — one row 
 per authorization attempt stored in `raw.stripe_charges`. 
-The raw layer ingests these without any transformation. 
-56 fields per record covering transaction identity, card 
-instrument, authorization checks, risk signals, and interchange 
-economics. The table below shows 5 representative records — 
-one clean POS authorization, one Apple Pay transaction, one 
-decline, one ecommerce with missing CVC, and one disputed 
-transaction. Scroll horizontally to see all 56 fields.
+56 fields per record. Scroll horizontally to see all columns.
 
 | id | charge_id | merchant_account_id | merchant_name | customer_id | attempt_number | created | created_at | card_brand | card_funding | card_country | card_last4 | card_exp_month | card_exp_year | card_fingerprint | card_network | card_wallet | card_bin | network_token_used | checks_cvc_check | checks_address_postal_code_check | checks_address_line1_check | three_d_secure_result | three_d_secure_version | three_d_secure_result_reason | outcome_network_status | outcome_type | outcome_risk_level | outcome_risk_score | outcome_reason | failure_code | outcome_network_decline_code | amount | amount_captured | currency | amount_usd_cents | billing_address_country | billing_address_postal_code | customer_email | customer_ip_country | device_type | shopper_interaction | is_guest_checkout | statement_descriptor | radar_risk_score | radar_risk_level | radar_outcome | disputed | dispute_reason | interchange_amount_cents | interchange_rate_bps | interchange_program | network_fee_cents | stripe_fee_cents | balance_transaction_id | settlement_date |
 |:---|:---|:---|:---|:---|---:|---:|:---|:---|:---|:---|---:|---:|---:|:---|:---|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|---:|:---|:---|---:|---:|---:|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|---:|:---|:---|:---|:---|---:|---:|:---|---:|---:|:---|:---|
@@ -134,16 +128,8 @@ transaction. Scroll horizontally to see all 56 fields.
 | pi_uZo03LzftvUWfGY5HSdOz7Bm | ch_zd3ZLBLA2h0pV6OHpBEiEDxL | acct_reta000003 | Merchant_0003_Retail | null | 1 | 1704067644 | 2024-01-01T00:07:24+00:00 | visa | credit | GB | 9016 | 12 | 2026 | mwNNjVd6RluKjw0u | visa | null | 43950326 | False | null | unchecked | unchecked | exempted | 2.1.0 | null | approved_by_network | authorized | highest | 91 | null | null | 00 | 26467 | 26467 | usd | 26467 | GB | 1010 | null | GB | mobile | ecommerce | True | RETAIL3 | 70 | elevated | review | False | null | 531 | 201 | STD_IRF | 31 | 797 | txn_ISyKrqZlOfXve7e8qT97PVX6 | 2024-01-03 |
 | pi_tvH9TP3ptPwafA5reVZbUXMk | ch_Ls2VNM3ND6ElrUNLoXkHFh0v | acct_beau000001 | Merchant_0001_Beauty | null | 1 | 1705644324 | 2024-01-19T06:05:24+00:00 | visa | debit | US | 5691 | 2 | 2026 | ChTcmXuMApNRkC4I | visa | apple_pay | 46172566 | False | pass | pass | pass | null | null | null | approved_by_network | authorized | elevated | 46 | null | null | 00 | 2486 | 2486 | usd | 2486 | US | 85001 | null | US | pos_terminal | pos | True | BEAUTY1 | 78 | highest | review | True | unrecognized | 20 | 83 | SUPERMARKET | 4 | 102 | txn_JJ3Ske2USh216ksmgbg3urpH | 2024-01-20 |
 
-Key observations from this raw data:
-- Row 3 (declined): `charge_id` is null, all interchange and fee 
-  fields are null — no economics on failed transactions
-- Row 4 (ecommerce, no CVC): `checks_cvc_check` is null — 
-  merchant did not submit CVC. 3DS was exempted. Interchange 
-  program is `STD_IRF` — the highest fallback tier, directly 
-  caused by missing auth data
-- Row 5 (disputed): Transaction authorized and settled normally, 
-  but `disputed: True` and `dispute_reason: unrecognized` — 
-  cardholder later contested the charge
+> Full field definitions and null pattern documentation 
+> in [docs/schema.md](docs/schema.md).
 
 
 ### Gold Output — Optimization Recommendations
