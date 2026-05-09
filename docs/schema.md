@@ -3,7 +3,7 @@
 Complete reference for all 56 fields in the raw transaction 
 schema. Modeled after real payment processor API structures.
 
-## The Same 5 Records
+## Raw Data
 
 The table below shows the same 5 records from the README 
 raw layer section — use this alongside the field definitions 
