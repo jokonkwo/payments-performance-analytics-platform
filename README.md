@@ -116,21 +116,35 @@ real estate, nonprofit, B2B SaaS, logistics.
 
 ### Raw Input — Bronze Layer
 
-One row per authorization attempt, as emitted by a payment 
-processor API. Messy field names, mixed types, nested checks, 
-null patterns. This is what the pipeline starts with:
+Each record arrives as a single compressed JSON blob — one row 
+per authorization attempt stored in `raw.stripe_charges`. 
+The raw layer ingests these without any transformation. 
+56 fields per record covering transaction identity, card 
+instrument, authorization checks, risk signals, and interchange 
+economics. The table below shows 5 representative records — 
+one clean POS authorization, one Apple Pay transaction, one 
+decline, one ecommerce with missing CVC, and one disputed 
+transaction. Scroll horizontally to see all 56 fields.
 
-| id | card_brand | card_funding | shopper_interaction | amount | currency | checks_cvc_check | outcome_type | interchange_rate_bps | radar_risk_score |
-|:---|:---|:---|:---|---:|:---|:---|:---|---:|---:|
-| pi_vCoj6Yk... | visa | debit | pos | 5846 | usd | pass | authorized | 89 | 81 |
-| pi_eW7DF8m... | visa | debit | pos | 6312 | usd | pass | authorized | 72 | 3 |
-| pi_vWD5Kol... | discover | prepaid | pos | 5964 | usd | unchecked | authorized | 188 | 87 |
-| pi_sDLOtUv... | amex | prepaid | pos | 7658 | usd | pass | authorized | 274 | 0 |
-| pi_epSylOO... | visa | credit | pos | 4062 | usd | pass | authorized | 162 | 9 |
+| id | charge_id | merchant_account_id | merchant_name | customer_id | attempt_number | created | created_at | card_brand | card_funding | card_country | card_last4 | card_exp_month | card_exp_year | card_fingerprint | card_network | card_wallet | card_bin | network_token_used | checks_cvc_check | checks_address_postal_code_check | checks_address_line1_check | three_d_secure_result | three_d_secure_version | three_d_secure_result_reason | outcome_network_status | outcome_type | outcome_risk_level | outcome_risk_score | outcome_reason | failure_code | outcome_network_decline_code | amount | amount_captured | currency | amount_usd_cents | billing_address_country | billing_address_postal_code | customer_email | customer_ip_country | device_type | shopper_interaction | is_guest_checkout | statement_descriptor | radar_risk_score | radar_risk_level | radar_outcome | disputed | dispute_reason | interchange_amount_cents | interchange_rate_bps | interchange_program | network_fee_cents | stripe_fee_cents | balance_transaction_id | settlement_date |
+|:---|:---|:---|:---|:---|---:|---:|:---|:---|:---|:---|---:|---:|---:|:---|:---|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|---:|:---|:---|---:|---:|---:|:---|---:|:---|:---|:---|:---|:---|:---|:---|:---|---:|:---|:---|:---|:---|---:|---:|:---|---:|---:|:---|:---|
+| pi_vCoj6YkBQraizYesFHtIjrez | ch_QM0LApaSLjuJTaKMZKh5ioaP | acct_beau000001 | Merchant_0001_Beauty | null | 1 | 1704070613 | 2024-01-01T00:56:53+00:00 | visa | debit | US | 5599 | 10 | 2028 | pNaF2up8SjUSF2N9 | visa | null | 49857374 | False | pass | pass | pass | null | null | null | approved_by_network | authorized | elevated | 73 | null | null | 00 | 5846 | 5846 | usd | 5846 | US | 98101 | null | US | pos_terminal | pos | True | BEAUTY1 | 81 | highest | review | False | null | 52 | 89 | REGULATED_DEBIT | 8 | 199 | txn_cuxplVxJ5zHBpL5il7Pqr0xl | 2024-01-02 |
+| pi_eW7DF8mgupKtzh5KX1Sb5vkc | ch_HeuypsExD4BI8jbFXch0vwiI | acct_beau000001 | Merchant_0001_Beauty | null | 1 | 1704072758 | 2024-01-01T01:32:38+00:00 | visa | debit | GB | 7052 | 6 | 2027 | BJuO1yEeJbXcdSbR | visa | apple_pay | 45989189 | False | pass | unchecked | pass | null | null | null | approved_by_network | authorized | normal | 28 | null | null | 00 | 6312 | 6312 | usd | 6312 | GB | EC1A 1BB | null | GB | pos_terminal | pos | True | BEAUTY1 | 3 | normal | allow | False | null | 45 | 72 | SUPERMARKET | 8 | 213 | txn_sHfTQvHW5noaZKWbbvGUVST1 | 2024-01-02 |
+| pi_gtxfufzmfhEFgkM355a5Si9r | null | acct_beau000001 | Merchant_0001_Beauty | null | 1 | 1704128312 | 2024-01-01T16:58:32+00:00 | mastercard | credit | US | 9696 | 5 | 2027 | 4T4QOc6zmwbKZFQ7 | mastercard | null | 55493235 | False | pass | pass | pass | null | null | null | declined_by_network | issuer_declined | normal | 3 | null | do_not_honor | 05 | 2060 | 0 | usd | 2060 | US | 33101 | null | US | pos_terminal | pos | True | BEAUTY1 | 68 | elevated | review | False | null | null | null | null | null | null | null | null |
+| pi_uZo03LzftvUWfGY5HSdOz7Bm | ch_zd3ZLBLA2h0pV6OHpBEiEDxL | acct_reta000003 | Merchant_0003_Retail | null | 1 | 1704067644 | 2024-01-01T00:07:24+00:00 | visa | credit | GB | 9016 | 12 | 2026 | mwNNjVd6RluKjw0u | visa | null | 43950326 | False | null | unchecked | unchecked | exempted | 2.1.0 | null | approved_by_network | authorized | highest | 91 | null | null | 00 | 26467 | 26467 | usd | 26467 | GB | 1010 | null | GB | mobile | ecommerce | True | RETAIL3 | 70 | elevated | review | False | null | 531 | 201 | STD_IRF | 31 | 797 | txn_ISyKrqZlOfXve7e8qT97PVX6 | 2024-01-03 |
+| pi_tvH9TP3ptPwafA5reVZbUXMk | ch_Ls2VNM3ND6ElrUNLoXkHFh0v | acct_beau000001 | Merchant_0001_Beauty | null | 1 | 1705644324 | 2024-01-19T06:05:24+00:00 | visa | debit | US | 5691 | 2 | 2026 | ChTcmXuMApNRkC4I | visa | apple_pay | 46172566 | False | pass | pass | pass | null | null | null | approved_by_network | authorized | elevated | 46 | null | null | 00 | 2486 | 2486 | usd | 2486 | US | 85001 | null | US | pos_terminal | pos | True | BEAUTY1 | 78 | highest | review | True | unrecognized | 20 | 83 | SUPERMARKET | 4 | 102 | txn_JJ3Ske2USh216ksmgbg3urpH | 2024-01-20 |
 
-`amount` is in minor units (cents). `checks_cvc_check` uses 
-Stripe's real API values. `interchange_rate_bps` is null on 
-declines. This is the raw schema — no business logic applied.
+Key observations from this raw data:
+- Row 3 (declined): `charge_id` is null, all interchange and fee 
+  fields are null — no economics on failed transactions
+- Row 4 (ecommerce, no CVC): `checks_cvc_check` is null — 
+  merchant did not submit CVC. 3DS was exempted. Interchange 
+  program is `STD_IRF` — the highest fallback tier, directly 
+  caused by missing auth data
+- Row 5 (disputed): Transaction authorized and settled normally, 
+  but `disputed: True` and `dispute_reason: unrecognized` — 
+  cardholder later contested the charge
+
 
 ### Gold Output — Optimization Recommendations
 
